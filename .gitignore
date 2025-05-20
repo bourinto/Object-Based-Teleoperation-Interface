@@ -1,0 +1,27 @@
+# ROS 2 / colcon build files
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# Env
+.env
+venv/
+.venv/
+
+# Colcon metadata
+.colcon/
+
+# Auto-generated Python cache
+*/__pycache__/
