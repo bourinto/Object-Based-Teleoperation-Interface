@@ -5,6 +5,7 @@
   <version>0.1.1</version>
   <description>TODO: Package description</description>
   <maintainer email="bourin.tomeo@gmail.com">bourinto</maintainer>
+  <license>MIT</license>
 
   <depend>rclpy</depend>
   <depend>geometry_msgs</depend>
