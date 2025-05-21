@@ -16,7 +16,7 @@ ros2 run xarm_control ee_pose_controller
 # Sinusoidal demo
 ros2 run xarm_control ee_demo_sinus_publisher
 
-# Keyboard teleop: use WASD, QE, IJKL, UO to move
+# Keyboard teleop:
 ros2 run xarm_control teleop_keyboard
 ```
 
@@ -29,11 +29,11 @@ ros2 run xarm_control teleop_keyboard
 
 **Default bindings:**
 
-| Key | Motion  |   |   | Key | Motion    |
-| --- | ------- | - | - | --- | --------- |
-| w/s | +X / -X |   |   | i/k | +Rx / -Rx |
-| a/d | +Y / -Y |   |   | j/l | +Ry / -Ry |
-| q/e | +Z / -Z |   |   | u/o | +Rz / -Rz |
+| Key | Motion  |   | Key | Motion    |
+| --- | ------- | - | --- | --------- |
+| w/s | +X / -X |   | i/k | +Rx / -Rx |
+| a/d | +Y / -Y |   | j/l | +Ry / -Ry |
+| q/e | +Z / -Z |   | u/o | +Rz / -Rz |
 
 **Initial pose:**
 
