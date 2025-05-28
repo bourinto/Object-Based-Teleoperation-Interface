@@ -1,10 +1,10 @@
 from setuptools import find_packages, setup
 
-package_name = "xarm_control"
+package_name = "unity_transform"
 
 setup(
     name=package_name,
-    version="0.1.1",
+    version="0.1.0",
     packages=find_packages(exclude=["test"]),
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
@@ -14,14 +14,12 @@ setup(
     zip_safe=True,
     maintainer="bourinto",
     maintainer_email="bourin.tomeo@gmail.com",
-    description="A lightweight ROS 2 Humble package for real-time Cartesian control of the xArm6",
+    description="Convert pose data from Unity into commands for the xArm6 robot.",
     license="MIT",
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "ee_pose_controller = xarm_control.ee_pose_controller:main",
-            "ee_demo_sinus_publisher = xarm_control.ee_demo_sinus_publisher:main",
-            "teleop_keyboard = xarm_control.teleop_keyboard:main",
+            "vive_to_xarm = unity_transform.vive_to_xarm:main",
         ],
     },
 )

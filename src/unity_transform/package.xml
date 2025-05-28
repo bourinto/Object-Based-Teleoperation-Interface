@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>xarm_control</name>
-  <version>0.1.1</version>
-  <description>A lightweight ROS 2 Humble package for real-time Cartesian control of the xArm6</description>
+  <name>unity_transform</name>
+  <version>0.1.0</version>
+  <description>Convert pose data from Unity into commands for the xArm6 robot.</description>
   <maintainer email="bourin.tomeo@gmail.com">bourinto</maintainer>
   <license>MIT</license>
 

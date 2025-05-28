@@ -40,6 +40,10 @@ class XArmCartesianController(Node):
         _, current_pose = self.arm.get_position(is_radian=False)
         self.ee_cmd = current_pose
 
+        # Publisher for current end-effector pose at 50 Hz
+        self.pose_pub = self.create_publisher(Twist, "/xarm6/ee_pose_current", 10)
+        self.create_timer(0.02, self._publish_current_pose)
+
         # Subscribe to Cartesian pose commands
         qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -68,6 +72,13 @@ class XArmCartesianController(Node):
             f"Initial gripper pose: {self.arm.get_gripper_position()}"
         )
 
+    def _publish_current_pose(self) -> None:
+        _, pose = self.arm.get_position(is_radian=False)
+        msg = Twist()
+        msg.linear.x, msg.linear.y, msg.linear.z = pose[:3]
+        msg.angular.x, msg.angular.y, msg.angular.z = pose[3:]
+        self.pose_pub.publish(msg)
+
     def _ee_command_callback(self, msg: Twist) -> None:
         """
         Store desired end-effector pose when a Twist message is received.
@@ -87,10 +98,10 @@ class XArmCartesianController(Node):
         speed = np.clip(msg.max_effort, 350.0, 5000.0)
 
         self.arm.set_gripper_position(pos_mm, speed=speed, wait=False)
-        self.get_logger().info(
-            f"Gripper command received: {(pos_mm/10.):.2f} mm, "
-            f"speed: {speed:.2f} r/min"
-        )
+        # self.get_logger().info(
+        #     f"Gripper command received: {(pos_mm/10.):.2f} mm, "
+        #     f"speed: {speed:.2f} r/min"
+        # )
 
     def _stream_callback(self) -> None:
         """Send interpolated Cartesian servo command to the robot."""
@@ -144,7 +155,6 @@ class XArmCartesianController(Node):
 
 
 def main(args=None) -> None:
-    """Initialize ROS2 and start the Cartesian controller node."""
     rclpy.init(args=args)
     controller = XArmCartesianController()
     try:

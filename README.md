@@ -1,49 +1,79 @@
 # xArm6 Cartesian Controller
 
-A lightweight ROS 2 Humble package for real-time Cartesian control of the xArm6. It includes:
+This workspace contains two ROS 2 packages for streaming controller poses from Unity into Cartesian commands for the xArm6 robot and for real-time control of the xArm6 itself.
 
-* A controller node publishing end‑effector pose commands.
-* A sinusoidal-trajectory demo publisher.
-* A keyboard teleoperation node for direct manual control.
+## Packages
 
+### unity_transform
 
-## Quick start
+**Description:** \
+Converts Vive controller pose (from Unity) into Cartesian end-effector commands for the xArm6.
+
+**Key Features:**
+- Subscribes to `/unity/controller_pose` (geometry_msgs/Twist).
+- Transforms poses from the Unity coordinate frame to the robot’s reference frame.
+- Publishes Cartesian commands to `/xarm6/ee_pose_cmd`.
+
+**Run:**  
+```bash
+ros2 run unity_transform vive_to_xarm
+```
+
+**Parameters (with defaults):**
+
+Offsets are specific to one particular Vive setup and may need to be adjusted for others. Translations are in millimeters, and rotations are in degrees.
+
+---
+
+### xarm\_control
+
+**Description:**\
+Lightweight ROS 2 package for real-time Cartesian control of the xArm6.
+
+**Includes:**
+
+* **`ee_pose_controller`**:
+  Streams real-time Cartesian servo commands to the xArm6 based on incoming `/xarm6/ee_pose_cmd` messages.
+* **`ee_demo_sinus_publisher`**:
+  Publishes a simple sinusoidal end-effector trajectory for demonstration.
+* **`teleop_keyboard`**:
+  Keyboard teleoperation interface for manual Cartesian control and gripper toggling.
+
+**Run:**
 
 ```bash
-# Controller: publishes to /xarm6/ee_pose_cmd
+# Controller node
 ros2 run xarm_control ee_pose_controller
 
-# Sinusoidal demo
+# Sinusoidal trajectory demo
 ros2 run xarm_control ee_demo_sinus_publisher
 
-# Keyboard teleop:
+# Keyboard teleoperation
 ros2 run xarm_control teleop_keyboard
 ```
 
+---
 
 ## Keyboard Teleoperation
 
 **Features:**
-* Hold keys to incrementally adjust pose derivatives.
-* Press <kbd>Esc</kbd> to return to the initial pose and exit.
 
-**Default bindings:**
+* Hold keys to incrementally adjust the end-effector pose.
+* Press <kbd>Esc</kbd> to reset to initial pose and exit.
+* Press <kbd>Enter</kbd> or <kbd>Backspace</kbd> to open/close the gripper.
 
-| Key | Motion  |   | Key | Motion    |
-| --- | ------- | - | --- | --------- |
-| w/s | +X / -X |   | i/k | +Rx / -Rx |
-| a/d | +Y / -Y |   | j/l | +Ry / -Ry |
-| q/e | +Z / -Z |   | u/o | +Rz / -Rz |
+**Default Key Bindings:**
 
-**Initial pose:**
+| Key   | Motion  |   | Key   | Motion    |
+| ----- | ------- | - | ----- | --------- |
+| w / s | +X / –X |   | i / k | +Rx / –Rx |
+| a / d | +Y / –Y |   | j / l | +Ry / –Ry |
+| q / e | +Z / –Z |   | u / o | +Rz / –Rz |
 
-* Linear: `[210.0, 0.0, 115.0]`
-* Angular: `[-180.0, 0.0, 0.0]`
 
-You can change bindings and scaling values directly in `teleop_keyboard.py`, especially in the `key_bindings` dictionary.
+You can modify key bindings and scaling factors in the `key_bindings` dictionary inside `teleop_keyboard.py`.
 
 ---
 
 **Author:** bourinto\
-Tokyo University of Science\
-Yoshida Laboratory
+Tokyo University of Science, Yoshida Laboratory
