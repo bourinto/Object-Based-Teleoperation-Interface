@@ -1,30 +1,38 @@
-#!/usr/bin/env python3
-"""
-Real-time converter from Vive controller pose to xArm6 end-effector commands.
-Subscribes to Unity Twist messages for controller pose and publishes Cartesian
-Twist commands to the xArm6.
-"""
-
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Pose
 import numpy as np
+from scipy.spatial.transform import Rotation
 
+def quaternion_to_euler_xyz(q):
+    x, y, z, w = q
+    m00 = 1 - 2*(y**2 + z**2)
+    m01 = 2*(x*y - z*w)
+    m02 = 2*(x*z + y*w)
+    m10 = 2*(x*y + z*w)
+    m11 = 1 - 2*(x**2 + z**2)
+    m12 = 2*(y*z - x*w)
+    m20 = 2*(x*z - y*w)
+    m21 = 2*(y*z + x*w)
+    m22 = 1 - 2*(x**2 + y**2)
+
+    alpha  = np.arcsin(-m20)
+    beta = np.arctan2(m10, m00)
+    gamma = np.arctan2(m21, m22)
+
+    return np.degrees([alpha, beta, gamma])
 
 class ViveToXarm(Node):
-    """ROS2 node to transform Vive controller pose into xArm6 Cartesian commands."""
-
     def __init__(self):
         super().__init__("unity_to_xarm")
 
-        # Declare translation offsets (in millimeters)
         self.declare_parameter("offset_x", 200)
         self.declare_parameter("offset_y", -412)
         self.declare_parameter("offset_z", -611)
-        # Declare rotation offsets (in degrees)
         self.declare_parameter("offset_roll", 0)
-        self.declare_parameter("offset_pitch", 90)
-        self.declare_parameter("offset_yaw", 30)
+        self.declare_parameter("offset_pitch", 0)
+        self.declare_parameter("offset_yaw", 0)
+
         self.offset_x = self.get_parameter("offset_x").value
         self.offset_y = self.get_parameter("offset_y").value
         self.offset_z = self.get_parameter("offset_z").value
@@ -32,48 +40,32 @@ class ViveToXarm(Node):
         self.offset_pitch = self.get_parameter("offset_pitch").value
         self.offset_yaw = self.get_parameter("offset_yaw").value
 
-        # Precompute 2D rotation matrix for yaw adjustment around Z-axis
         theta = np.radians(self.offset_yaw)
-        self.R_matrix = np.array(
-            [
-                [np.cos(theta), -np.sin(theta)],
-                [np.sin(theta), np.cos(theta)],
-            ]
-        )
+        self.R2D_matrix = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
 
-        # Subscribe to Unity controller pose topic
-        self.sub = self.create_subscription(
-            Twist, "/unity/controller_pose", self.cb, 10
-        )
-        # Publisher for xArm6 end-effector pose commands
+        self.sub = self.create_subscription(Pose, "/unity/controller_pose", self.cb, 10)
         self.pub = self.create_publisher(Twist, "/xarm6/ee_pose_cmd", 10)
 
     def cb(self, msg):
-        """
-        Callback for incoming controller pose messages.
-        Transforms Vive pose into xArm6 Cartesian command and publishes it.
-        """
         new_msg = Twist()
 
-        # Map Unity axes (m) to robot axes (mm) and apply yaw rotation
-        pose = self.R_matrix @ np.array(
-            [
-                -(msg.linear.z) * 1000.0,
-                (msg.linear.x) * 1000.0,
-            ]
-        )
+        # Cartesian coords
+        pos_xy = np.array([-msg.position.z * 1000.0, msg.position.x * 1000.0])
+        pose = self.R2D_matrix @ pos_xy
 
-        # Compute Cartesian position and orientation
-        new_msg.linear.x = pose[0] + self.offset_x
-        new_msg.linear.y = pose[1] + self.offset_y
-        new_msg.linear.z = (msg.linear.y * 1000.0) + self.offset_z
+        new_msg.linear.x = np.floor(pose[0] + self.offset_x)
+        new_msg.linear.y = np.floor(pose[1] + self.offset_y)
+        new_msg.linear.z = np.floor(msg.position.y * 1000.0 + self.offset_z)
 
-        new_msg.angular.x = (msg.angular.z + self.offset_roll) % 360 - 180
-        new_msg.angular.y = (msg.angular.x + self.offset_pitch) % 360 - 180
-        new_msg.angular.z = (-msg.angular.y + self.offset_yaw) % 360 - 180
+        # Euler angle X Y Z coords
+        q = (msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w)
+        roll, pitch, yaw = quaternion_to_euler_xyz(q)
+
+        new_msg.angular.x = np.floor(roll)
+        new_msg.angular.y = np.floor(pitch)
+        new_msg.angular.z = np.floor(yaw)
 
         self.pub.publish(new_msg)
-
 
 def main(args=None):
     rclpy.init(args=args)
@@ -83,7 +75,6 @@ def main(args=None):
     finally:
         node.destroy_node()
         rclpy.shutdown()
-
 
 if __name__ == "__main__":
     main()

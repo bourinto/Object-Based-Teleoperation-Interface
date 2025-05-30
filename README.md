@@ -67,8 +67,8 @@ ros2 run xarm_control teleop_keyboard
 | Key   | Motion  |   | Key   | Motion    |
 | ----- | ------- | - | ----- | --------- |
 | w / s | +X / –X |   | i / k | +Rx / –Rx |
-| a / d | +Y / –Y |   | j / l | +Ry / –Ry |
-| q / e | +Z / –Z |   | u / o | +Rz / –Rz |
+| d / a | +Y / –Y |   | l / j | +Ry / –Ry |
+| e / q | +Z / –Z |   | o / u | +Rz / –Rz |
 
 
 You can modify key bindings and scaling factors in the `key_bindings` dictionary inside `teleop_keyboard.py`.
