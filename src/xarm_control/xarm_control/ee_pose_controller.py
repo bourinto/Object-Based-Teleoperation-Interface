@@ -32,8 +32,8 @@ class XArmCartesianController(Node):
         self.arm.set_mode(1)
         self.arm.set_state(0)
 
-        self.arm.clean_gripper_error()
-        self.arm.set_gripper_enable(True)
+        #self.arm.clean_gripper_error()
+        #self.arm.set_gripper_enable(True)
         time.sleep(1)
 
         # Get current end-effector pose
@@ -68,9 +68,8 @@ class XArmCartesianController(Node):
 
         self.get_logger().info("xArm Cartesian realtime controller initialized.")
         self.get_logger().info(f"Initial xArm pose: {current_pose}")
-        self.get_logger().info(
-            f"Initial gripper pose: {self.arm.get_gripper_position()}"
-        )
+        #self.get_logger().info(
+        #    f"Initial gripper pose: {self.arm.get_gripper_position()}")
 
     def _publish_current_pose(self) -> None:
         _, pose = self.arm.get_position(is_radian=False)
@@ -94,10 +93,11 @@ class XArmCartesianController(Node):
         self.get_logger().info(f"End-effector command received: {self.ee_cmd}")
 
     def _gripper_cb(self, msg):
-        pos_mm = np.clip(msg.position, -10.0, 850.0)  # 0-85 mm for xArm gripper
+        pos_mm = np.clip(msg.position, -10.0, 850.0)  # -10 to 85 mm for xArm gripper
         speed = np.clip(msg.max_effort, 350.0, 5000.0)
 
-        self.arm.set_gripper_position(pos_mm, speed=speed, wait=False)
+        #self.arm.set_gripper_position(pos_mm, speed=speed, wait=False)
+        
         # self.get_logger().info(
         #     f"Gripper command received: {(pos_mm/10.):.2f} mm, "
         #     f"speed: {speed:.2f} r/min"
@@ -118,23 +118,18 @@ class XArmCartesianController(Node):
         Returns a 6-element array: [x, y, z, roll, pitch, yaw].
         """
         target = np.array(self.ee_cmd, dtype=float)
-        _, actual = self.arm.get_position(is_radian=False)
-        current = np.array(actual, dtype=float)
+        _, pose = self.arm.get_position(is_radian=False)
+        current = np.array(pose, dtype=float)
 
-        # Position interpolation: move up to 1 unit per step
-        delta_pos = target[:3] - current[:3]
-        distance = np.linalg.norm(delta_pos)
-        if distance < 0.01:
+        # Position interpolation:
+        delta_pose = target[:3] - current[:3]
+        distance = np.linalg.norm(delta_pose)
+        if distance < 0.1:
             cmd_xyz = current[:3]
         else:
-            cmd_xyz = current[:3] + (delta_pos / distance)
+            cmd_xyz = current[:3] + (delta_pose / distance)
 
-        # Normalize angular difference to [-180, 180]
-        delta_ang = (target[3:] - current[3:] + 180.0) % 360.0 - 180.0
-        cmd_rpy = current[3:] + delta_ang
-        cmd_rpy = np.clip(cmd_rpy, -360.0, 360.0)
-
-        return np.concatenate((cmd_xyz, cmd_rpy))
+        return np.concatenate((cmd_xyz, target[3:]))
 
     def _anti_lock_callback(self) -> None:
         """
@@ -143,9 +138,9 @@ class XArmCartesianController(Node):
         self.arm.motion_enable(enable=True)
         self.arm.set_mode(1)
         self.arm.set_state(0)
-        self.arm.clean_gripper_error()
-        self.arm.set_gripper_mode(0)
-        self.arm.set_gripper_enable(True)
+        #self.arm.clean_gripper_error()
+        #self.arm.set_gripper_mode(0)
+        #self.arm.set_gripper_enable(True)
 
     def destroy_node(self) -> None:
         """Disconnect the arm and clean up on shutdown."""

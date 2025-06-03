@@ -26,10 +26,10 @@ key_bindings = {
     "q": ("linear", 2, -1.0),  # -Z
     "i": ("angular", 0, 1.0),  # +Roll
     "k": ("angular", 0, -1.0),  # -Roll
-    "l": ("angular", 1, 1.0),  # +Pitch
-    "j": ("angular", 1, -1.0),  # -Pitch
-    "o": ("angular", 2, 1.0),  # +Yaw
-    "u": ("angular", 2, -1.0),  # -Yaw
+    "j": ("angular", 1, 1.0),  # +Pitch
+    "l": ("angular", 1, -1.0),  # -Pitch
+    "u": ("angular", 2, 1.0),  # +Yaw
+    "o": ("angular", 2, -1.0),  # -Yaw
 }
 
 # Scaling factors and gripper limits
@@ -58,7 +58,7 @@ class TeleopKeyboard(Node):
         self.curr_linear = None
         self.curr_angular = None
         # Initialize gripper position
-        self.gripper = 0.0
+        self.gripper = 500.
 
         # Subscribe to current end-effector pose topic
         qos = QoSProfile(

@@ -7,12 +7,16 @@ This workspace contains two ROS 2 packages for streaming controller poses from U
 ### unity_transform
 
 **Description:** \
-Converts Vive controller pose (from Unity) into Cartesian end-effector commands for the xArm6.
+Converts Vive controller state (from Unity) into Cartesian end-effector commands for the xArm6.
 
-**Key Features:**
-- Subscribes to `/unity/controller_pose` (geometry_msgs/Twist).
-- Transforms poses from the Unity coordinate frame to the robot’s reference frame.
-- Publishes Cartesian commands to `/xarm6/ee_pose_cmd`.
+**Features**
+
+- The end effector of the XArm6 mirrors the exact movement of your Unity controller in 3D space. Be aware that the responsiveness depends on Unity's frame rate.
+
+- The gripper reacts to your finger’s position on the touchpad: push forward to close, pull back to open, and stay near the center or lift to hold.
+
+> *TODO:* Implement the missing degree of freedom for wrist rotation.
+
 
 **Run:**  
 ```bash
