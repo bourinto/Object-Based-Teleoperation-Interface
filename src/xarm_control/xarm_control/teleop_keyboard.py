@@ -28,8 +28,8 @@ key_bindings = {
     "k": ("angular", 0, -1.0),  # -Roll
     "j": ("angular", 1, 1.0),  # +Pitch
     "l": ("angular", 1, -1.0),  # -Pitch
-    "u": ("angular", 2, 1.0),  # +Yaw
-    "o": ("angular", 2, -1.0),  # -Yaw
+    "o": ("angular", 2, 1.0),  # +Yaw
+    "u": ("angular", 2, -1.0),  # -Yaw
 }
 
 # Scaling factors and gripper limits
