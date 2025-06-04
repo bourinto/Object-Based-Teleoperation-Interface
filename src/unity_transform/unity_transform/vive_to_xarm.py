@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""
-Real-time converter from Vive controller pose to xArm6 end-effector commands.
-Subscribes to Unity Twist messages for controller pose and publishes Cartesian
-Twist commands to the xArm6. Also subscribes to Unity touchpad Float32 messages
-to control the xArm6 gripper.
-"""
-
+import time
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
@@ -15,20 +9,16 @@ import numpy as np
 
 
 class ViveToXarm(Node):
-    """ROS2 node to transform Vive controller pose into xArm6 Cartesian commands."""
-
     def __init__(self):
         super().__init__("unity_to_xarm")
+        self.get_logger().info("Starting ViveToXarm node")
 
-        # Declare translation offsets (in millimeters)
         self.declare_parameter("offset_x", 200)
         self.declare_parameter("offset_y", -412)
         self.declare_parameter("offset_z", -611)
-        # Declare rotation offsets (in degrees)
         self.declare_parameter("offset_roll", 0)
         self.declare_parameter("offset_pitch", 90)
         self.declare_parameter("offset_yaw", 30)
-        # Initialize gripper control variables
         self.declare_parameter("grip_cmd", 500.0)
         self.declare_parameter("grip_kp", 50.0)
 
@@ -41,7 +31,14 @@ class ViveToXarm(Node):
         self.grip_cmd = self.get_parameter("grip_cmd").value
         self.grip_kp = self.get_parameter("grip_kp").value
 
-        # Precompute 2D rotation matrix for yaw adjustment around Z-axis
+        self.get_logger().info(
+            f"Offsets: x={self.offset_x}, y={self.offset_y}, z={self.offset_z}, "
+            f"roll={self.offset_roll}, pitch={self.offset_pitch}, yaw={self.offset_yaw}"
+        )
+        self.get_logger().info(
+            f"Gripper initial position: {self.grip_cmd}, Kp: {self.grip_kp}"
+        )
+
         theta = np.radians(self.offset_yaw)
         self.R_matrix = np.array(
             [
@@ -50,7 +47,6 @@ class ViveToXarm(Node):
             ]
         )
 
-        # Subscribers
         self.sub = self.create_subscription(
             Twist, "/unity/controller_pose", self.cb, 10
         )
@@ -59,19 +55,18 @@ class ViveToXarm(Node):
             Float32, "/unity/touchpad", self.touchpad_cb, 10
         )
 
-        # Publishers
         self.pub = self.create_publisher(Twist, "/xarm6/ee_pose_cmd", 10)
 
         self.grip_pub = self.create_publisher(GripperCommand, "/xarm6/gripper_cmd", 10)
 
-    def cb(self, msg):
-        """
-        Callback for incoming controller pose messages.
-        Transforms Vive pose into xArm6 Cartesian command and publishes it.
-        """
-        new_msg = Twist()
+        time.sleep(1)
 
-        # Map Unity axes (m) to robot axes (mm) and apply yaw rotation
+    def cb(self, msg):
+        self.get_logger().debug(
+            f"Received controller pose: linear=({msg.linear.x:.3f}, {msg.linear.y:.3f}, {msg.linear.z:.3f}), "
+            f"angular=({msg.angular.x:.3f}, {msg.angular.y:.3f}, {msg.angular.z:.3f})"
+        )
+
         pose = self.R_matrix @ np.array(
             [
                 -(msg.linear.z) * 1000.0,
@@ -79,28 +74,32 @@ class ViveToXarm(Node):
             ]
         )
 
-        # Compute Cartesian position and orientation
+        new_msg = Twist()
         new_msg.linear.x = pose[0] + self.offset_x
         new_msg.linear.y = pose[1] + self.offset_y
         new_msg.linear.z = (msg.linear.y * 1000.0) + self.offset_z
 
-        new_msg.angular.x = 180.0  # TODO: Wrist's degree of freedom
-        new_msg.angular.y = (msg.angular.x + self.offset_pitch) % 360 - 180
-        new_msg.angular.z = (-msg.angular.y + self.offset_yaw) % 360 - 180
+        new_msg.angular.x = 180.
+        new_msg.angular.y = ((msg.angular.x + self.offset_pitch + 180) % 360) - 180
+        new_msg.angular.z = ((-msg.angular.y + self.offset_yaw + 180) % 360) - 180
 
         self.pub.publish(new_msg)
+        self.get_logger().info(
+            f"Published xArm6 pose: linear=({new_msg.linear.x:.1f}, {new_msg.linear.y:.1f}, {new_msg.linear.z:.1f}), "
+            f"angular=({new_msg.angular.x:.1f}, {new_msg.angular.y:.1f}, {new_msg.angular.z:.1f})"
+        )
 
     def touchpad_cb(self, msg):
-        """
-        Callback for Unity touchpad input.
-        Updates the gripper command using a proportional gain.
-        And publish the command at fixed speed.
-        """
+        self.get_logger().debug(f"Touchpad input: {msg.data:.3f}")
+        prev_cmd = self.grip_cmd
         self.grip_cmd = np.clip(self.grip_cmd + self.grip_kp * msg.data, -10, 850)
         gripper_msg = GripperCommand()
         gripper_msg.position = self.grip_cmd
         gripper_msg.max_effort = 800.0
         self.grip_pub.publish(gripper_msg)
+        self.get_logger().info(
+            f"Gripper command updated from {prev_cmd:.1f} to {self.grip_cmd:.1f}"
+        )
 
 
 def main(args=None):

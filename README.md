@@ -11,7 +11,7 @@ Converts Vive controller state (from Unity) into Cartesian end-effector commands
 
 **Features**
 
-- The end effector of the XArm6 mirrors the exact movement of your Unity controller in 3D space. Be aware that the responsiveness depends on Unity's frame rate.
+- The end effector of the xArm6 mirrors the exact movement of your Unity controller in 3D space. Be aware that the responsiveness depends on Unity's frame rate.
 
 - The gripper reacts to your finger’s position on the touchpad: push forward to close, pull back to open, and stay near the center or lift to hold.
 
@@ -63,7 +63,6 @@ ros2 run xarm_control teleop_keyboard
 **Features:**
 
 * Hold keys to incrementally adjust the end-effector pose.
-* Press <kbd>Esc</kbd> to reset to initial pose and exit.
 * Press <kbd>Enter</kbd> or <kbd>Backspace</kbd> to open/close the gripper.
 
 **Default Key Bindings:**
