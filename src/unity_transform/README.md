@@ -4,7 +4,7 @@ ROS 2 package that converts Vive controller data from Unity into xArm6 commands
 
 ## Node
 
-### `vive_to_xarm`
+### `vive_absolute_motion`
 
 - **Subscriptions**
   - `/unity/controller_pose` (`geometry_msgs/Twist`): pose of the controller.
@@ -22,5 +22,5 @@ adjustment in a different environment.
 Run the node with:
 
 ```bash
-ros2 run unity_transform vive_to_xarm
+ros2 run unity_transform vive_absolute_motion
 ```

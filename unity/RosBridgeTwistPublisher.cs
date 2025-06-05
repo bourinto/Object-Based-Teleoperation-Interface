@@ -6,6 +6,7 @@ public class RosBridgeTwistPublisher : MonoBehaviour
 {
     public Transform rightController;
     public Transform thumbStick;
+    public Transform triggerObject;
     WebSocket ws;
     StringBuilder sb = new StringBuilder(256);
 
@@ -21,6 +22,7 @@ public class RosBridgeTwistPublisher : MonoBehaviour
         ws.Connect();
         ws.Send("{\"op\":\"advertise\",\"topic\":\"/unity/controller_pose\",\"type\":\"geometry_msgs/Twist\"}");
         ws.Send("{\"op\":\"advertise\",\"topic\":\"/unity/touchpad\",\"type\":\"std_msgs/Float32\"}");
+        ws.Send("{\"op\":\"advertise\",\"topic\":\"/unity/trigger\",\"type\":\"std_msgs/Bool\"}");
     }
 
     void Update()
@@ -42,6 +44,14 @@ public class RosBridgeTwistPublisher : MonoBehaviour
 
         sb.Clear();
         sb.Append("{\"op\":\"publish\",\"topic\":\"/unity/touchpad\",\"msg\":{\"data\":").Append(value).Append("}}");
+        ws.Send(sb.ToString());
+
+        float triggerAngleX = triggerObject.localEulerAngles.x;
+        if (triggerAngleX > 180f) triggerAngleX -= 360f;
+        bool triggerState = triggerAngleX == -15f;
+
+        sb.Clear();
+        sb.Append("{\"op\":\"publish\",\"topic\":\"/unity/trigger\",\"msg\":{\"data\":").Append(triggerState.ToString().ToLower()).Append("}}");
         ws.Send(sb.ToString());
     }
 
