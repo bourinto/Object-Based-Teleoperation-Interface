@@ -19,8 +19,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "vive_absolute_motion = unity_transform.vive_absolute_motion:main",
-            "vive_relative_motion = unity_transform.vive_relative_motion:main",
+            "vive_to_xarm = unity_transform.vive_to_xarm:main",
         ],
     },
 )

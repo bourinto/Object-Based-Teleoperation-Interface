@@ -4,11 +4,20 @@ ROS 2 package that converts Vive controller data from Unity into xArm6 commands
 
 ## Node
 
-### `vive_absolute_motion`
+### `vive_to_xarm`
+
+Unified node that converts Vive controller poses into xArm6 Cartesian commands.
+It supports two modes:
+
+- **Relative** (`--is_relative True`, default) – controller motion is applied
+  relative to the robot pose when the trigger button is pressed.
+- **Absolute** (`--is_relative False`) – controller pose is mapped directly into
+  xArm coordinates.
 
 - **Subscriptions**
   - `/unity/controller_pose` (`geometry_msgs/Twist`): pose of the controller.
   - `/unity/touchpad` (`std_msgs/Float32`): touchpad position used for gripper control.
+  - `/unity/trigger` (`std_msgs/Bool`): enables relative motion while pressed.
 - **Publications**
   - `/xarm6/ee_pose_cmd` (`geometry_msgs/Twist`): Cartesian pose command.
   - `/xarm6/gripper_cmd` (`control_msgs/GripperCommand`): gripper command.
@@ -22,5 +31,5 @@ adjustment in a different environment.
 Run the node with:
 
 ```bash
-ros2 run unity_transform vive_absolute_motion
+ros2 run unity_transform vive_to_xarm --is_relative True
 ```
