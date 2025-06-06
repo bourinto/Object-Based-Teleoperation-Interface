@@ -87,9 +87,6 @@ class ViveToXarm(Node):
         gripper_msg.position = self.grip_cmd
         gripper_msg.max_effort = 800.0
         self.grip_pub.publish(gripper_msg)
-        self.get_logger().info(
-            f"Gripper command updated from {prev_cmd:.1f} to {self.grip_cmd:.1f}"
-        )
 
 
 def main(argv=None):

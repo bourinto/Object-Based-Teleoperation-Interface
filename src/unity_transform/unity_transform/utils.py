@@ -41,7 +41,7 @@ def convert_pose(
     converted.linear.y = xy[1] + off_y
     converted.linear.z = msg.linear.y * 1000.0 + off_z
     converted.angular.x = 180.0 + off_roll
-    converted.angular.y = sawtooth(msg.angular.x + off_pitch)
+    converted.angular.y = sawtooth(-msg.angular.x + off_pitch)
     converted.angular.z = sawtooth(-msg.angular.y + off_yaw)
     return converted
 

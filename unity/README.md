@@ -4,7 +4,7 @@ This project was built using **[Unity 6000.1.4](https://unity.com/releases/edito
 
 ## HTC Vive-Ready Scene
 
-If you're using an **HTC Vive**, a preconfigured Unity scene is available **[Here](https://drive.usercontent.google.com/download?id=1DA54HXuRPVssflVRsW1H0aUAetDlI9Bc&export=download)**!
+If you're using an **HTC Vive**, a preconfigured Unity scene is available **[Here](https://drive.google.com/drive/folders/1r1TNFW372G5PVKYh7jwA6eGltpLQNAVy?usp=drive_link)**!
 
 1. Unzip `VivetoXarm.zip`.
 2. Open it as a *New Project* in Unity.
@@ -37,7 +37,7 @@ To forward the WebSocket port from a Windows machine, run this in an **elevated 
 ssh -L 9090:localhost:9090 user@255.255.255.0
 ```
 
-Then, on the Ubuntu machine, launch the bridge:
+Once connected, launch the bridge:
 
 ```bash
 ros2 launch rosbridge_server rosbridge_websocket.launch.py
