@@ -1,6 +1,11 @@
 from std_msgs.msg import Bool
 
-from .vive_to_xarm import sawtooth
+from .utils import (
+    convert_pose,
+    sawtooth,
+    twist_to_vector,
+    vector_to_twist,
+)
 
 class RelativeMotion:
     """Handle relative motion mode for Vive to xArm."""
@@ -39,7 +44,11 @@ class RelativeMotion:
             self.node.get_logger().info("Trigger OFF: stopping relative motion.")
 
     def handle_pose(self, msg):
-        converted = self.node.convert_pose(msg)
+        converted = convert_pose(
+            self.node.R_matrix,
+            msg,
+            offsets=self.node.offsets,
+        )
         if self.trigger:
             if self.vive_origin_pose is None:
                 self.vive_origin_pose = self.node.TwistType()
@@ -51,9 +60,9 @@ class RelativeMotion:
                 self.vive_origin_pose.angular.z = converted.angular.z
                 self.node.get_logger().info("Captured controller origin.")
                 return
-            vec_conv = self.node.twist_to_vector(converted)
-            vec_vive = self.node.twist_to_vector(self.vive_origin_pose)
-            vec_xarm = self.node.twist_to_vector(self.xarm_origin_pose)
+            vec_conv = twist_to_vector(converted)
+            vec_vive = twist_to_vector(self.vive_origin_pose)
+            vec_xarm = twist_to_vector(self.xarm_origin_pose)
             delta_vec = vec_conv.copy()
             delta_vec[0:3] = vec_conv[0:3] - vec_vive[0:3]
             delta_vec[3] = 0.0
@@ -63,7 +72,7 @@ class RelativeMotion:
             target_vec[0:3] += delta_vec[0:3]
             for i in range(3, 6):
                 target_vec[i] = sawtooth(vec_xarm[i] + delta_vec[i])
-            target = self.node.vector_to_twist(target_vec)
+            target = vector_to_twist(target_vec)
             self.node.pub.publish(target)
             self.node.get_logger().info(
                 f"Published xArm6 pose: linear=({target.linear.x:.1f}, {target.linear.y:.1f}, {target.linear.z:.1f}), "

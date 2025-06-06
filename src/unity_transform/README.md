@@ -14,6 +14,9 @@ It supports two modes:
 - **Absolute** (`--is_relative False`) – controller pose is mapped directly into
   xArm coordinates.
 
+The relative mode implementation is inspired by the approach presented in
+[this paper](https://ieeexplore.ieee.org/document/9197517).
+
 - **Subscriptions**
   - `/unity/controller_pose` (`geometry_msgs/Twist`): pose of the controller.
   - `/unity/touchpad` (`std_msgs/Float32`): touchpad position used for gripper control.

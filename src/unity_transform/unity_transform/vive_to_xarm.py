@@ -14,11 +14,6 @@ from .absolute_motion import AbsoluteMotion
 from .relative_motion import RelativeMotion
 
 
-def sawtooth(angle: float) -> float:
-    """Wrap angle to [-180, 180) degrees."""
-    return (angle + 180.0) % 360.0 - 180.0
-
-
 class ViveToXarm(Node):
     """Publish xArm Cartesian commands from Vive controller data."""
 
@@ -39,25 +34,28 @@ class ViveToXarm(Node):
         self.declare_parameter("grip_cmd", 500.0)
         self.declare_parameter("grip_kp", 50.0)
 
-        self.offset_x = self.get_parameter("offset_x").value
-        self.offset_y = self.get_parameter("offset_y").value
-        self.offset_z = self.get_parameter("offset_z").value
-        self.offset_roll = self.get_parameter("offset_roll").value
-        self.offset_pitch = self.get_parameter("offset_pitch").value
-        self.offset_yaw = self.get_parameter("offset_yaw").value
+        self.offsets = {
+            "x": self.get_parameter("offset_x").value,
+            "y": self.get_parameter("offset_y").value,
+            "z": self.get_parameter("offset_z").value,
+            "roll": self.get_parameter("offset_roll").value,
+            "pitch": self.get_parameter("offset_pitch").value,
+            "yaw": self.get_parameter("offset_yaw").value,
+        }
         self.grip_cmd = self.get_parameter("grip_cmd").value
         self.grip_kp = self.get_parameter("grip_kp").value
 
         self.get_logger().info(
-            f"Offsets: x={self.offset_x}, y={self.offset_y}, z={self.offset_z}, "
-            f"roll={self.offset_roll}, pitch={self.offset_pitch}, yaw={self.offset_yaw}"
+            "Offsets: x={x}, y={y}, z={z}, roll={roll}, pitch={pitch}, yaw={yaw}".format(
+                **self.offsets
+            )
         )
         self.get_logger().info(
             f"Gripper initial position: {self.grip_cmd}, Kp: {self.grip_kp}"
         )
 
         # Rotation matrix for Unity->xArm frame conversion
-        theta = np.radians(self.offset_yaw)
+        theta = np.radians(self.offsets["yaw"])
         self.R_matrix = np.array(
             [
                 [np.cos(theta), -np.sin(theta)],
@@ -77,35 +75,6 @@ class ViveToXarm(Node):
         self.motion = RelativeMotion(self) if is_relative else AbsoluteMotion(self)
 
         time.sleep(1)
-
-    # ------------------------------------------------------------------
-    def convert_pose(self, msg: Twist) -> Twist:
-        """Convert Unity controller pose to an xArm Cartesian command."""
-        R = self.R_matrix
-        xy = R @ [-(msg.linear.z) * 1000.0, msg.linear.x * 1000.0]
-        converted = Twist()
-        converted.linear.x = xy[0] + self.offset_x
-        converted.linear.y = xy[1] + self.offset_y
-        converted.linear.z = msg.linear.y * 1000.0 + self.offset_z
-        converted.angular.x = 180.0
-        converted.angular.y = sawtooth(msg.angular.x + self.offset_pitch)
-        converted.angular.z = sawtooth(-msg.angular.y + self.offset_yaw)
-        return converted
-
-    # Helper conversion utilities used by the RelativeMotion class
-    @staticmethod
-    def twist_to_vector(t: Twist) -> np.ndarray:
-        return np.array(
-            [t.linear.x, t.linear.y, t.linear.z, t.angular.x, t.angular.y, t.angular.z],
-            dtype=float,
-        )
-
-    @staticmethod
-    def vector_to_twist(vec: np.ndarray) -> Twist:
-        t = Twist()
-        t.linear.x, t.linear.y, t.linear.z = vec[0], vec[1], vec[2]
-        t.angular.x, t.angular.y, t.angular.z = vec[3], vec[4], vec[5]
-        return t
 
     # ROS callbacks -----------------------------------------------------
     def cb(self, msg: Twist) -> None:
