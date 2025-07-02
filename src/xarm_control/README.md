@@ -4,7 +4,7 @@ ROS 2 package containing nodes for commanding the xArm6.
 
 ## Nodes
 
-### `ee_pose_controller`
+### `xarm_control`
 Real-time Cartesian controller for the xArm6.
 
 - **Subscriptions**
@@ -12,17 +12,18 @@ Real-time Cartesian controller for the xArm6.
   - `/xarm6/gripper_cmd` (`control_msgs/GripperCommand`): gripper position and effort.
 - **Publications**
   - `/xarm6/ee_pose_current` (`geometry_msgs/Twist`): pose feedback published at 50 Hz.
+  - `/xarm6/joints_values` (`std_msgs/Float64MultiArray`): current joint angles published at 50 Hz.
 - **Parameters**
   - `robot_ip` – IP address of the arm (default `192.168.1.217`).
 
 Run the controller with:
 
 ```bash
-ros2 run xarm_control ee_pose_controller --ros-args -p robot_ip:=<robot-ip>
+ros2 run xarm_control xarm_control --ros-args -p robot_ip:=<robot-ip>
 ```
 
-### `ee_demo_sinus_publisher`
-Publishes a simple sinusoidal trajectory on `/xarm6/ee_pose_cmd` for testing.
+### `demo_circle_publisher`
+Publishes a simple circular trajectory on `/xarm6/ee_pose_cmd` for testing.
 
 ### `teleop_keyboard`
 Keyboard interface that sends Cartesian pose commands and gripper commands. See the source for key bindings.

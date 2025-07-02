@@ -10,6 +10,7 @@ import time
 import numpy as np
 import rclpy
 from geometry_msgs.msg import Twist
+from std_msgs.msg import Float64MultiArray
 from control_msgs.msg import GripperCommand
 from rclpy.node import Node
 from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
@@ -20,7 +21,7 @@ class XArmCartesianController(Node):
     """ROS2 node for controlling xArm in Cartesian space."""
 
     def __init__(self):
-        super().__init__("ee_pose_controller")
+        super().__init__("xarm_control")
 
         # Declare and read robot IP parameter
         self.declare_parameter("robot_ip", "192.168.1.217")
@@ -42,6 +43,7 @@ class XArmCartesianController(Node):
 
         # Publisher for current end-effector pose at 50 Hz
         self.pose_pub = self.create_publisher(Twist, "/xarm6/ee_pose_current", 10)
+        self.joints_pub = self.create_publisher(Float64MultiArray, "/xarm6/joints_values", 10)
         self.create_timer(0.02, self._publish_current_pose)
 
         # Subscribe to Cartesian pose commands
@@ -77,6 +79,11 @@ class XArmCartesianController(Node):
         msg.linear.x, msg.linear.y, msg.linear.z = pose[:3]
         msg.angular.x, msg.angular.y, msg.angular.z = pose[3:]
         self.pose_pub.publish(msg)
+
+        _, joints = self.arm.get_servo_angle(is_radian=False)
+        jmsg = Float64MultiArray()
+        jmsg.data = joints
+        self.joints_pub.publish(jmsg)
 
     def _ee_command_callback(self, msg: Twist) -> None:
         """

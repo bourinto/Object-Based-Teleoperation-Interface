@@ -19,8 +19,8 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "ee_pose_controller = xarm_control.ee_pose_controller:main",
-            "ee_demo_sinus_publisher = xarm_control.ee_demo_sinus_publisher:main",
+            "xarm_control = xarm_control.xarm_control:main",
+            "demo_circle_publisher = xarm_control.demo_circle_publisher:main",
             "teleop_keyboard = xarm_control.teleop_keyboard:main",
         ],
     },
