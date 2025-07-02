@@ -30,7 +30,7 @@ Then run the converter and controller:
 
 ```bash
 ros2 run unity_transform vive_to_xarm
-ros2 run xarm_control ee_pose_controller --ros-args -p robot_ip:=<ip>
+ros2 run xarm_control xarm_control --ros-args -p robot_ip:=<ip>
 ```
 
 Finally, launch the Unity scene and move the controller to drive

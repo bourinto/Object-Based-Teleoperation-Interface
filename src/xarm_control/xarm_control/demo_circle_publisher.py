@@ -12,11 +12,11 @@ from geometry_msgs.msg import Twist
 from rclpy.node import Node
 
 
-class EESinusPublisher(Node):
-    """ROS2 node that publishes a sinusoidal trajectory for the end-effector."""
+class DemoCirclePublisher(Node):
+    """ROS2 node that publishes a circular trajectory for the end-effector."""
 
     def __init__(self) -> None:
-        super().__init__("ee_demo_sinus_publisher")
+        super().__init__("demo_circle_publisher")
 
         # Create publisher for end-effector pose commands
         self.publisher = self.create_publisher(Twist, "/xarm6/ee_pose_cmd", 10)
@@ -59,7 +59,7 @@ class EESinusPublisher(Node):
 def main(args=None) -> None:
     """Initialize ROS2 node and spin until shutdown."""
     rclpy.init(args=args)
-    node = EESinusPublisher()
+    node = DemoCirclePublisher()
     try:
         rclpy.spin(node)
     finally:
