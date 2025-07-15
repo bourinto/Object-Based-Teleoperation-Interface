@@ -30,9 +30,9 @@ class ViveToXarm(Node):
         self.declare_parameter("offset_z", -611)
         self.declare_parameter("offset_roll", 0)
         self.declare_parameter("offset_pitch", 90)
-        self.declare_parameter("offset_yaw", 30)
-        self.declare_parameter("grip_cmd", 500.0)
-        self.declare_parameter("grip_kp", 50.0)
+        self.declare_parameter("offset_yaw", 0)
+        self.declare_parameter("grip_cmd", 355.0)
+        self.declare_parameter("grip_kp", 10.0)
 
         self.offsets = {
             "x": self.get_parameter("offset_x").value,
@@ -81,11 +81,10 @@ class ViveToXarm(Node):
         self.motion.handle_pose(msg)
 
     def touchpad_cb(self, msg: Float32) -> None:
-        prev_cmd = self.grip_cmd
-        self.grip_cmd = float(np.clip(self.grip_cmd + self.grip_kp * msg.data, -10, 850))
+        self.grip_cmd = float(np.clip(self.grip_cmd - self.grip_kp * msg.data, -10, 850))
         gripper_msg = GripperCommand()
         gripper_msg.position = self.grip_cmd
-        gripper_msg.max_effort = 800.0
+        gripper_msg.max_effort = 1500.
         self.grip_pub.publish(gripper_msg)
 
 
@@ -98,7 +97,7 @@ def main(argv=None):
         help="Set to False for absolute mode",
     )
     args, ros_args = parser.parse_known_args(argv)
-    is_relative = str(args.is_relative).lower() in ("true", "1", "t", "yes")
+    is_relative = str(args.is_relative).lower() in ("true", "1", "t", "yes", "y")
 
     rclpy.init(args=ros_args)
     node = ViveToXarm(is_relative=is_relative)

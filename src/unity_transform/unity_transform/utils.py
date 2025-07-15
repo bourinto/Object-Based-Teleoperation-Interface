@@ -10,7 +10,7 @@ def sawtooth(angle: float) -> float:
     return (angle + 180.0) % 360.0 - 180.0
 
 
-def convert_pose(
+def convert_pose( # should return an array, and we should use vector_to_twist to send it if needed, just like in the absolute motion py
     R_matrix: np.ndarray,
     msg: Twist,
     offsets: Mapping[str, float] | None = None,
@@ -40,7 +40,7 @@ def convert_pose(
     converted.linear.x = xy[0] + off_x
     converted.linear.y = xy[1] + off_y
     converted.linear.z = msg.linear.y * 1000.0 + off_z
-    converted.angular.x = 180.0 + off_roll
+    converted.angular.x = sawtooth(-msg.angular.z)
     converted.angular.y = sawtooth(-msg.angular.x + off_pitch)
     converted.angular.z = sawtooth(-msg.angular.y + off_yaw)
     return converted
