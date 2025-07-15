@@ -29,7 +29,7 @@ First, start the WebSocket bridge (see `unity/README.md`).\
 Then run the converter and controller:
 
 ```bash
-ros2 run unity_transform vive_to_xarm
+ros2 run unity_transform unity_to_xarm
 ros2 run xarm_control xarm_control --ros-args -p robot_ip:=<ip>
 ```
 

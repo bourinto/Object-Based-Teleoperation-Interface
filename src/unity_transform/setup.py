@@ -19,7 +19,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "vive_to_xarm = unity_transform.vive_to_xarm:main",
+            "unity_to_xarm = unity_transform.unity_to_xarm:main",
         ],
     },
 )

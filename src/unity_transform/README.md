@@ -1,12 +1,12 @@
 # unity_transform
 
-ROS 2 package that converts Vive controller data from Unity into xArm6 commands.
+ROS 2 package that converts unity controller data from Unity into xArm6 commands.
 
 ## Node
 
-### `vive_to_xarm`
+### `unity_to_xarm`
 
-Unified node that converts Vive controller poses into xArm6 Cartesian commands.
+Unified node that converts unity controller poses into xArm6 Cartesian commands.
 It supports two modes:
 
 - **Relative** (`--is_relative True`, default) – controller motion is applied
@@ -28,11 +28,11 @@ The relative mode implementation is inspired by the approach presented in
   - `offset_x`, `offset_y`, `offset_z` – translation offsets in millimetres.
   - `offset_roll`, `offset_pitch`, `offset_yaw` – orientation offsets in degrees.
 
-These offsets were tuned for one Vive room configuration and may need
+These offsets were tuned for one unity room configuration and may need
 adjustment in a different environment.
 
 Run the node with:
 
 ```bash
-ros2 run unity_transform vive_to_xarm --is_relative True
+ros2 run unity_transform unity_to_xarm --is_relative True
 ```

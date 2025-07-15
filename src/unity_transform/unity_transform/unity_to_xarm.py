@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unified Vive to xArm control node."""
+"""Unified unity to xArm control node."""
 import argparse
 import sys
 import time
@@ -14,15 +14,15 @@ from .absolute_motion import AbsoluteMotion
 from .relative_motion import RelativeMotion
 
 
-class ViveToXarm(Node):
-    """Publish xArm Cartesian commands from Vive controller data."""
+class UnityToXarm(Node):
+    """Publish xArm Cartesian commands from unity controller data."""
 
     TwistType = Twist  # alias used by helper modules
 
-    def __init__(self, *, is_relative: bool = True):
-        super().__init__("vive_to_xarm")
+    def __init__(self, *, is_relative: bool = True) -> None:
+        super().__init__("unity_to_xarm")
         mode = "RELATIVE" if is_relative else "ABSOLUTE"
-        self.get_logger().info(f"Starting ViveToXarm node in {mode} mode")
+        self.get_logger().info(f"Starting UnityToXarm node in {mode} mode")
 
         # Declare and read parameters common to both modes
         self.declare_parameter("offset_x", 200)
@@ -78,19 +78,23 @@ class ViveToXarm(Node):
 
     # ROS callbacks -----------------------------------------------------
     def cb(self, msg: Twist) -> None:
+        """Forward controller pose messages to the motion handler."""
+
         self.motion.handle_pose(msg)
 
     def touchpad_cb(self, msg: Float32) -> None:
+        """Update gripper command based on touchpad input."""
+
         self.grip_cmd = float(np.clip(self.grip_cmd - self.grip_kp * msg.data, -10, 850))
         gripper_msg = GripperCommand()
         gripper_msg.position = self.grip_cmd
-        gripper_msg.max_effort = 1500.
+        gripper_msg.max_effort = 1500.0
         self.grip_pub.publish(gripper_msg)
 
 
-def main(argv=None):
+def main(argv: list[str] | None = None) -> None:
     argv = sys.argv[1:] if argv is None else argv
-    parser = argparse.ArgumentParser(description="Vive to xArm teleoperation")
+    parser = argparse.ArgumentParser(description="unity to xArm teleoperation")
     parser.add_argument(
         "--is_relative",
         default="True",
@@ -100,7 +104,7 @@ def main(argv=None):
     is_relative = str(args.is_relative).lower() in ("true", "1", "t", "yes", "y")
 
     rclpy.init(args=ros_args)
-    node = ViveToXarm(is_relative=is_relative)
+    node = UnityToXarm(is_relative=is_relative)
     try:
         rclpy.spin(node)
     finally:
