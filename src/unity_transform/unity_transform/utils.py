@@ -1,6 +1,7 @@
 """Utility functions for pose conversions and math helpers."""
 
 from typing import Iterable, Mapping
+
 import numpy as np
 from geometry_msgs.msg import Twist
 
@@ -10,40 +11,38 @@ def sawtooth(angle: float) -> float:
     return (angle + 180.0) % 360.0 - 180.0
 
 
-def convert_pose( # should return an array, and we should use vector_to_twist to send it if needed, just like in the absolute motion py
+def convert_pose(
     R_matrix: np.ndarray,
     msg: Twist,
     offsets: Mapping[str, float] | None = None,
-) -> Twist:
-    """Convert Unity controller pose to an xArm ``Twist``.
+) -> np.ndarray:
+    """Convert unity controller pose to a 6D xArm vector.
 
-    Parameters
-    ----------
-    R_matrix:
-        2x2 rotation matrix for the controller frame.
-    msg:
-        Incoming controller pose.
-    offsets:
-        Mapping with optional ``x``, ``y``, ``z``, ``roll``, ``pitch`` and
-        ``yaw`` keys containing offset values in millimetres/degrees.
+    Args:
+        R_matrix: 2x2 rotation matrix for the controller frame.
+        msg: Incoming controller pose.
+        offsets: Optional mapping with ``x``, ``y``, ``z``, ``roll``, ``pitch``
+            and ``yaw`` keys containing offset values in millimetres/degrees.
+
+    Returns:
+        Array ``[x, y, z, roll, pitch, yaw]`` with offsets applied.
     """
     offsets = offsets or {}
     off_x = offsets.get("x", 0.0)
     off_y = offsets.get("y", 0.0)
     off_z = offsets.get("z", 0.0)
-    off_roll = offsets.get("roll", 0.0)
     off_pitch = offsets.get("pitch", 0.0)
     off_yaw = offsets.get("yaw", 0.0)
 
     xy = R_matrix @ [-(msg.linear.z) * 1000.0, msg.linear.x * 1000.0]
-    converted = Twist()
-    converted.linear.x = xy[0] + off_x
-    converted.linear.y = xy[1] + off_y
-    converted.linear.z = msg.linear.y * 1000.0 + off_z
-    converted.angular.x = sawtooth(-msg.angular.z)
-    converted.angular.y = sawtooth(-msg.angular.x + off_pitch)
-    converted.angular.z = sawtooth(-msg.angular.y + off_yaw)
-    return converted
+    linear_x = xy[0] + off_x
+    linear_y = xy[1] + off_y
+    linear_z = msg.linear.y * 1000.0 + off_z
+    roll = sawtooth(-msg.angular.z)
+    pitch = sawtooth(-msg.angular.x + off_pitch)
+    yaw = sawtooth(-msg.angular.y + off_yaw)
+
+    return np.array([linear_x, linear_y, linear_z, roll, pitch, yaw], dtype=float)
 
 def twist_to_vector(t: Twist) -> np.ndarray:
     """Return a 6D vector representation of ``Twist``."""

@@ -1,9 +1,9 @@
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist
+from rclpy.node import Node
 from scipy.spatial.transform import Rotation as R
 
 import numpy as np
-import time
 
 from .utils import (
     convert_pose,
@@ -13,18 +13,20 @@ from .utils import (
 )
 
 
-def rot_offset(u, r, p, y):
+def rot_offset(u: np.ndarray, r: float, p: float, y: float) -> np.ndarray:
+    """Apply Euler rotation offsets to a vector."""
+
     return R.from_euler("XYZ", (r, -p, -y), degrees=True).apply(u)
 
 
 class RelativeMotion:
-    """Handle relative motion mode for Vive to xArm."""
+    """Handle relative motion mode for unity to xArm."""
 
-    def __init__(self, node):
+    def __init__(self, node: Node) -> None:
         self.node = node
         self.trigger = False
         self.xarm_origin_pose = None
-        self.vive_origin_pose = None
+        self.unity_origin_pose = None
         self.xarm_current_pose = None
         self.right_sphere = None
 
@@ -41,14 +43,20 @@ class RelativeMotion:
 
         self.u = np.array([0, 0, 130])
 
-    def xarm_cb(self, msg):
-        self.xarm_current_pose = msg
+    def xarm_cb(self, msg: Twist) -> None:
+        """Store the latest end-effector pose from the robot."""
 
-    def right_sphere_cb(self, msg):
+        self.xarm_current_pose = twist_to_vector(msg)
+
+    def right_sphere_cb(self, msg: Twist) -> None:
+        """Update the reference vector from the right sphere marker."""
+
         self.right_sphere = twist_to_vector(msg)
-        self.u = np.array([self.right_sphere[1]*100*5, 0, 130])
+        self.u = np.array([self.right_sphere[1] * 100 * 5, 0, 130])
 
-    def trigger_cb(self, msg: Bool):
+    def trigger_cb(self, msg: Bool) -> None:
+        """Handle trigger press to start or stop relative motion."""
+
         if msg.data and not self.trigger:
             if self.xarm_current_pose is None:
                 self.node.get_logger().warning(
@@ -56,57 +64,42 @@ class RelativeMotion:
                 )
                 return
             self.trigger = True
-            self.xarm_origin_pose = self.node.TwistType()#why store a twist msg ? an array would be better
-            self.xarm_origin_pose.linear.x = self.xarm_current_pose.linear.x
-            self.xarm_origin_pose.linear.y = self.xarm_current_pose.linear.y
-            self.xarm_origin_pose.linear.z = self.xarm_current_pose.linear.z
-            self.xarm_origin_pose.angular.x = self.xarm_current_pose.angular.x
-            self.xarm_origin_pose.angular.y = self.xarm_current_pose.angular.y
-            self.xarm_origin_pose.angular.z = self.xarm_current_pose.angular.z
-            self.vive_origin_pose = None
+            self.xarm_origin_pose = self.xarm_current_pose.copy()
+            self.unity_origin_pose = None
             self.node.get_logger().info(
                 "Trigger ON: captured xArm origin pose and waiting for controller origin."
             )
         elif not msg.data and self.trigger:
             self.trigger = False
             self.xarm_origin_pose = None
-            self.vive_origin_pose = None
+            self.unity_origin_pose = None
             self.node.get_logger().info("Trigger OFF: stopping relative motion.")
 
-    def handle_pose(self, msg):
-        converted = convert_pose( # refactor converted_pose, and should return an array
+    def handle_pose(self, msg: Twist) -> None:
+        """Compute and publish pose commands while the trigger is held."""
+
+        controller_pose = convert_pose(
             self.node.R_matrix,
             msg,
             offsets=self.node.offsets,
         )
         if self.trigger:
-            if self.vive_origin_pose is None:
-                self.vive_origin_pose = self.node.TwistType()
-                self.vive_origin_pose.linear.x = converted.linear.x
-                self.vive_origin_pose.linear.y = converted.linear.y
-                self.vive_origin_pose.linear.z = converted.linear.z
-                self.vive_origin_pose.angular.x = converted.angular.x
-                self.vive_origin_pose.angular.y = converted.angular.y
-                self.vive_origin_pose.angular.z = converted.angular.z
+            if self.unity_origin_pose is None:
+                self.unity_origin_pose = controller_pose.copy()
                 self.node.get_logger().info("Captured controller origin.")
                 return
-            
-            # instead of storing a twist msg and convert each loop, just do it once and store vect
-            vec_conv = twist_to_vector(converted) #refactor vect_ctrl
-            vec_vive = twist_to_vector(self.vive_origin_pose) #refactor vect_origin
-            vec_xarm = twist_to_vector(self.xarm_origin_pose) #refactor vect_unity
 
-            delta_vec = vec_conv.copy()
-            delta_vec[0:3] = vec_conv[0:3] - vec_vive[0:3]
+            delta_vec = controller_pose.copy()
+            delta_vec[0:3] = controller_pose[0:3] - self.unity_origin_pose[0:3]
             delta_vec[3] = 0.0
-            delta_vec[4] = -sawtooth(vec_conv[4] - vec_vive[4])
-            delta_vec[5] = sawtooth(vec_conv[5] - vec_vive[5])
+            delta_vec[4] = -sawtooth(controller_pose[4] - self.unity_origin_pose[4])
+            delta_vec[5] = sawtooth(controller_pose[5] - self.unity_origin_pose[5])
 
-            target_vec = vec_xarm.copy()
+            target_vec = self.xarm_origin_pose.copy()
             for i in range(3, 6):
-                target_vec[i] = sawtooth(vec_xarm[i] + delta_vec[i])
+                target_vec[i] = sawtooth(self.xarm_origin_pose[i] + delta_vec[i])
 
-            target_vec[0:3] += rot_offset(self.u, *vec_xarm[3:]) - rot_offset(
+            target_vec[0:3] += rot_offset(self.u, *self.xarm_origin_pose[3:]) - rot_offset(
                 self.u, *target_vec[3:]) + delta_vec[0:3] / 1.1
 
             target = vector_to_twist(target_vec)

@@ -20,7 +20,7 @@ from xarm.wrapper import XArmAPI
 class XArmCartesianController(Node):
     """ROS2 node for controlling xArm in Cartesian space."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("xarm_control")
 
         # Declare and read robot IP parameter
@@ -101,8 +101,10 @@ class XArmCartesianController(Node):
         ]
         self.get_logger().info(f"End-effector command received: {self.ee_cmd}")
 
-    def _gripper_cb(self, msg):
-        pos_mm = np.clip(msg.position, -10.0, 850.0)  # -10 to 85 mm for xArm gripper
+    def _gripper_cb(self, msg: GripperCommand) -> None:
+        """Handle gripper command messages."""
+
+        pos_mm = np.clip(msg.position, -10.0, 850.0)
         speed = np.clip(msg.max_effort, 350.0, 5000.0)
 
         self.arm.set_gripper_position(pos_mm, speed=speed, wait=False)

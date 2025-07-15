@@ -44,7 +44,7 @@ GRIPPER_MAX = 850.0
 class TeleopKeyboard(Node):
     """ROS2 node for keyboard teleoperation of xArm6 in Cartesian space."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("teleop_keyboard")
 
         # Publishers for end-effector and gripper
@@ -89,20 +89,23 @@ class TeleopKeyboard(Node):
         fcntl.fcntl(self.fd, fcntl.F_SETFL, self.old_flags | os.O_NONBLOCK)
 
     @property
-    def gripper(self):
+    def gripper(self) -> float:
+        """Current gripper opening."""
+
         return self._gripper
 
     @gripper.setter
-    def gripper(self, value):
-        # Clamp gripper position within its limits
+    def gripper(self, value: float) -> None:
+        """Set gripper opening within allowed limits."""
+
         self._gripper = np.clip(value, GRIPPER_MIN, GRIPPER_MAX)
 
-    def _current_pose_cb(self, msg: Twist):
+    def _current_pose_cb(self, msg: Twist) -> None:
         """Callback for receiving current end-effector pose from the robot."""
         self.curr_linear = [msg.linear.x, msg.linear.y, msg.linear.z]
         self.curr_angular = [msg.angular.x, msg.angular.y, msg.angular.z]
 
-    def keyboard_loop(self):
+    def keyboard_loop(self) -> None:
         """Main loop: read keyboard inputs and publish corresponding commands."""
         try:
             while rclpy.ok():
@@ -157,7 +160,9 @@ class TeleopKeyboard(Node):
             fcntl.fcntl(self.fd, fcntl.F_SETFL, self.old_flags)
 
 
-def main(args=None):
+def main(args: list[str] | None = None) -> None:
+    """Entry point for the keyboard teleoperation node."""
+
     rclpy.init(args=args)
     node = TeleopKeyboard()
     try:
