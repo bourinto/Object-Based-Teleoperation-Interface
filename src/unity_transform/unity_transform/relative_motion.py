@@ -73,6 +73,7 @@ class RelativeMotion:
             self.trigger = False
             self.xarm_origin_pose = None
             self.unity_origin_pose = None
+            self.u = np.array([0, 0, 130])
             self.node.get_logger().info("Trigger OFF: stopping relative motion.")
 
     def handle_pose(self, msg: Twist) -> None:

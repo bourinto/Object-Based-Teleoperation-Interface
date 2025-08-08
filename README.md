@@ -38,4 +38,4 @@ the robot.
 
 ---
 
-**Author:** bourinto – Tokyo University of Science, Yoshida Laboratory
+**Author:** T. Bourin
