@@ -2,30 +2,28 @@
 
 This project was built using **[Unity 6000.1.4](https://unity.com/releases/editor/whats-new/6000.1.4)**. Please use this version for best compatibility.
 
-## HTC Vive-Ready Scene
+## MetaQuest3 - xArm6 Ready Scene
 
-If you're using an **HTC Vive**, a preconfigured Unity scene is available **[Here](https://drive.google.com/drive/folders/1r1TNFW372G5PVKYh7jwA6eGltpLQNAVy?usp=drive_link)**!
+If you're using a **Meta Quest 3**, a preconfigured Unity scene is available **[Here](https://drive.google.com/drive/folders/1r1TNFW372G5PVKYh7jwA6eGltpLQNAVy?usp=drive_link)**!
 
-1. Unzip `VivetoXarm.zip`.
+1. Unzip `MRInterfaceForObjectBasedManipulation.zip`.
 2. Open it as a *New Project* in Unity.
 
-This scene is preconfigured for the HTC Vive right controller and ready to communicate with ROS 2.
-Before launching, ensure:
-
-* **SteamVR is running** (mandatory for Vive-Unity).
-* **Your play area is calibrated** via SteamVR.
+This scene is preconfigured for the Meta Quest 3 and ready to communicate with ROS 2.
+Before launching, ensure your headset is connected via Link or Air Link and recognized by Unity.
 
 ## Creating Your Own Unity Scene
 
-You’ll find all the key components needed to stream controller data to ROS 2 in this folder. If you'd rather build your own scene or integrate the features manually, use the following assets:
+You’ll find all the key components needed to stream Meta Quest 3 controller data to ROS 2 in this folder. If you'd rather build your own scene or integrate the features manually, use the following assets:
 
 1. **`websocket-sharp.dll`** – WebSocket library that connects Unity to a running ROS bridge (e.g., `rosbridge_server`).
    Place this file in a `Plugins` folder inside your Unity project.
 
-2. **`RosBridgeTwistPublisher.cs`** – Attach this script to a GameObject, and assign the `rightController` and `thumbStick` transforms. It publishes:
+2. **`RosBridgeTwistPublisher.cs`** – Attach this script to a GameObject, assign the controller, thumbstick, and trigger transforms, and it publishes `/unity/controller_pose`, `/unity/touchpad`, and `/unity/trigger`.
 
-   * `/unity/controller_pose` (`geometry_msgs/Twist`)
-   * `/unity/touchpad` (`std_msgs/Float32`)
+3. **`RosBridgeJointSubscriber.cs`** – Subscribes to xArm joint angles and gripper commands to animate the robot model in Unity.
+
+4. **`CylinderProjection.cs`** – Projects a controller position onto a cylinder surface and sends the locked point to ROS 2.
 
 ## WebSocket Setup
 

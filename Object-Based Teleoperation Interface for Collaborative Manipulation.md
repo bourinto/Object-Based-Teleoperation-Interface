@@ -1,4 +1,4 @@
-# xArm6 Teleoperation Workspace
+# Object-Based Teleoperation Interface for Collaborative Manipulation
 
 This repository contains a ROS 2 Humble workspace and a companion Unity project
 for teleoperating an xArm6 robot. Controller poses from Unity are streamed over
