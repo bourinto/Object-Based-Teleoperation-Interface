@@ -1,10 +1,12 @@
 # Object-Based Teleoperation Interface for Collaborative Manipulation
+This repository is associated with a research article of the same name.
+We recommend reading it beforehand to better understand the concepts
+and functionality of this project.
 
-This repository contains a ROS 2 Humble workspace and a companion Unity project
-for teleoperating an xArm6 robot. Controller poses from Unity are streamed over
-a WebSocket and converted into Cartesian commands for the arm.
+This framework contains a ROS 2 Humble workspace and a companion Unity project
+for teleoperating an xArm6 robot.  
 
-The workspace is organised as follows:
+It is organized as follows:
 
 - **`unity/`** – Unity assets and scripts used to publish controller poses.
 - **`src/`** – ROS 2 packages with the bridge and control nodes.
@@ -17,11 +19,6 @@ Each directory includes its own README with further details.
 - **Unity 6000.1.4** (matching version recommended)
 - `rosbridge_server` from `rosbridge_suite`
 - An xArm6 robot or simulator reachable on the network
-## Unity and ROS 2 Interaction
-
-`RosBridgeTwistPublisher.cs` publishes controller data via WebSocket to
-`rosbridge_server`. The `unity_transform` package then converts these messages
-into pose commands that are consumed by the `xarm_control` nodes.
 
 ## Typical Usage
 
