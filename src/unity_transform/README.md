@@ -25,8 +25,8 @@ The relative mode implementation is inspired by the approach presented in
   - `/xarm6/ee_pose_cmd` (`geometry_msgs/Twist`): Cartesian pose command.
   - `/xarm6/gripper_cmd` (`control_msgs/GripperCommand`): gripper command.
 - **Parameters**
-  - `offset_x`, `offset_y`, `offset_z` – translation offsets in millimetres.
-  - `offset_roll`, `offset_pitch`, `offset_yaw` – orientation offsets in degrees.
+  - `offset_x`, `offset_y`, `offset_z` – translation offsets in millimetres for absolute motion.
+  - `offset_roll`, `offset_pitch`, `offset_yaw` – orientation offsets in degrees for absolute motion.
 
 These offsets were tuned for one unity room configuration and may need
 adjustment in a different environment.
