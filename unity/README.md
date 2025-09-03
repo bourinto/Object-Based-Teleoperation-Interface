@@ -38,5 +38,5 @@ ssh -L 9090:localhost:9090 user@255.255.255.0
 Once connected, launch the bridge:
 
 ```bash
-ros2 launch rosbridge_server rosbridge_websocket.launch.py
+ros2 launch rosbridge_server rosbridge_websocket_launch.xml
 ```
